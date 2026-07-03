@@ -3,6 +3,7 @@ import sys
 import os
 import time
 from datetime import datetime
+from pyspark.sql.functions import count, avg, round
 
 try:
     from databricks.sdk.runtime import dbutils
@@ -67,6 +68,21 @@ def run_pipeline(config_path: str, env_catalog: str):
         logger.info("Awaiting stream termination (Processing Incremental Batch)...")
         query_ok.awaitTermination()
         query_ko.awaitTermination()
+
+        # Gold Layer - Business Aggregations (Batch Execution)
+        logger.info("Building Gold Layer business aggregations...")
+        gold_table_name = f"{env_catalog}.data_ingestion.person_gold_office_stats"
+        silver_df = spark.read.format("delta").load(path_ok)
+        
+        # Perform the aggregation
+        gold_df = silver_df.groupBy("office").agg(
+            count("*").alias("total_employees"),
+            round(avg("age"), 1).alias("average_age")
+        )
+        
+        # Overwrite the Gold table in Unity Catalog
+        gold_df.write.format("delta").mode("overwrite").saveAsTable(gold_table_name)
+        logger.info(f"Gold Layer successfully updated: {gold_table_name}")
         
         # Extract exact row counts by diffing the Delta Lake storage layer
         ok_final = get_table_count(path_ok)
