@@ -3,7 +3,7 @@ import sys
 import os
 import time
 from datetime import datetime
-from pyspark.sql.functions import count, avg, round
+from pyspark.sql.functions import count, avg, round as spark_round
 
 try:
     from databricks.sdk.runtime import dbutils
@@ -77,7 +77,7 @@ def run_pipeline(config_path: str, env_catalog: str):
         # Perform the aggregation
         gold_df = silver_df.groupBy("office").agg(
             count("*").alias("total_employees"),
-            round(avg("age"), 1).alias("average_age")
+            spark_round(avg("age"), 1).alias("average_age")
         )
         
         # Overwrite the Gold table in Unity Catalog
