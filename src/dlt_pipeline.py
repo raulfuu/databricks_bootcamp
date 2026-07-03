@@ -1,6 +1,6 @@
 # Databricks notebook source
 import json
-from pyspark.sql.functions import col, current_timestamp, lit, expr
+from pyspark.sql.functions import col, current_timestamp, lit, expr, count, avg, round
 
 try:
     import dlt
@@ -103,3 +103,19 @@ def person_standard_ko():
     
     # Attach the physical column to the final KO dataframe
     return ko_df.withColumn("arraycoderrorbyfield", expr(dynamic_array_sql))
+
+
+# Gold Layer - Aggregated Metrics
+@dlt.table(
+    name="person_gold_office_stats",
+    comment="Aggregated metrics by office for BI consumption"
+)
+def person_gold_office_stats():
+    return (
+        dlt.read("person_standard_ok")
+        .groupBy("office")
+        .agg(
+            count("*").alias("total_employees"),
+            round(avg("age"), 1).alias("average_age")
+        )
+    )
