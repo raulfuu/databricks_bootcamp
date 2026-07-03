@@ -1,0 +1,34 @@
+name: Databricks CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+env:
+  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  build_and_deploy:
+    name: "Validate and Deploy Bundle"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      # CI
+      - name: Validate Bundle Configuration
+        run: databricks bundle validate -t prod
+
+      # CD
+      - name: Deploy Bundle to Production
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: databricks bundle deploy -t prod
