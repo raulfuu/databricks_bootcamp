@@ -107,8 +107,8 @@ def person_standard_ko():
 
 # Gold Layer - Aggregated Metrics
 @dlt.table(
-    name="person_gold_office_stats",
-    comment="Aggregated metrics by office for BI consumption"
+    name="person_gold_office_stats_dlt",
+    comment="Aggregated metrics by office for BI consumption (DLT Edition)"
 )
 def person_gold_office_stats():
     return (
