@@ -1,0 +1,9 @@
+# Databricks Asset Bundles
+.databricks/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env

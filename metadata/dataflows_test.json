@@ -1,0 +1,49 @@
+{
+  "name": "prueba-acceso",
+  "sources": [
+    {
+      "name": "person_inputs",
+      "path": "/Volumes/bootcamp/data_ingestion/landing_zone/input/events/person/*",
+      "format": "JSON"
+    }
+  ],
+  "transformations": [
+    {
+      "name": "validation",
+      "type": "validate_fields",
+      "params": {
+        "input": "person_inputs",
+        "validations": [
+          {
+            "field": "office",
+            "validations": ["notEmpty"]
+          },
+          {
+            "field": "age",
+            "validations": ["notNull"]
+          }
+        ]
+      }
+    }
+  ],
+  "sinks": [
+    {
+      "input": "ok_with_date",
+      "name": "raw-ok",
+      "paths": [
+        "/Volumes/bootcamp/data_ingestion/landing_zone/output/events/person"
+      ],
+      "format": "DELTA",
+      "saveMode": "OVERWRITE"
+    },
+    {
+      "input": "validation_ko",
+      "name": "raw-ko",
+      "paths": [
+        "/Volumes/bootcamp/data_ingestion/landing_zone/output/discards/person"
+      ],
+      "format": "DELTA",
+      "saveMode": "OVERWRITE"
+    }
+  ]
+}

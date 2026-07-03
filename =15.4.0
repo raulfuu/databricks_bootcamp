@@ -1,0 +1,38 @@
+Requirement already satisfied: databricks-connect in ./.venv/lib/python3.13/site-packages (14.3.22)
+Collecting databricks-connect
+  Downloading databricks_connect-16.1.7-py2.py3-none-any.whl.metadata (2.6 kB)
+Requirement already satisfied: databricks-sdk>=0.29.0 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (0.119.0)
+Requirement already satisfied: googleapis-common-protos>=1.56.4 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (1.75.0)
+Requirement already satisfied: grpcio-status>=1.59.3 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (1.81.1)
+Requirement already satisfied: grpcio>=1.59.3 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (1.81.1)
+Requirement already satisfied: numpy<2,>=1.15 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (1.26.4)
+Requirement already satisfied: packaging>=23.2 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (26.2)
+Requirement already satisfied: pandas>=1.0.5 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (2.3.3)
+Requirement already satisfied: py4j==0.10.9.7 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (0.10.9.7)
+Requirement already satisfied: pyarrow>=4.0.0 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (24.0.0)
+Requirement already satisfied: setuptools>=68.0.0 in ./.venv/lib/python3.13/site-packages (from databricks-connect) (82.0.1)
+Requirement already satisfied: six in ./.venv/lib/python3.13/site-packages (from databricks-connect) (1.17.0)
+Requirement already satisfied: requests<3,>=2.28.1 in ./.venv/lib/python3.13/site-packages (from databricks-sdk>=0.29.0->databricks-connect) (2.34.2)
+Requirement already satisfied: google-auth~=2.0 in ./.venv/lib/python3.13/site-packages (from databricks-sdk>=0.29.0->databricks-connect) (2.55.1)
+Requirement already satisfied: protobuf!=5.26.*,!=5.27.*,!=5.28.*,!=5.29.0,!=5.29.1,!=5.29.2,!=5.29.3,!=5.29.4,!=6.30.0,!=6.30.1,!=6.31.0,<7.0,>=4.25.8 in ./.venv/lib/python3.13/site-packages (from databricks-sdk>=0.29.0->databricks-connect) (6.33.6)
+Requirement already satisfied: urllib3<3,>=1.26 in ./.venv/lib/python3.13/site-packages (from databricks-sdk>=0.29.0->databricks-connect) (2.7.0)
+Requirement already satisfied: pyasn1-modules>=0.2.1 in ./.venv/lib/python3.13/site-packages (from google-auth~=2.0->databricks-sdk>=0.29.0->databricks-connect) (0.4.2)
+Requirement already satisfied: cryptography>=38.0.3 in ./.venv/lib/python3.13/site-packages (from google-auth~=2.0->databricks-sdk>=0.29.0->databricks-connect) (49.0.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in ./.venv/lib/python3.13/site-packages (from requests<3,>=2.28.1->databricks-sdk>=0.29.0->databricks-connect) (3.4.7)
+Requirement already satisfied: idna<4,>=2.5 in ./.venv/lib/python3.13/site-packages (from requests<3,>=2.28.1->databricks-sdk>=0.29.0->databricks-connect) (3.18)
+Requirement already satisfied: certifi>=2023.5.7 in ./.venv/lib/python3.13/site-packages (from requests<3,>=2.28.1->databricks-sdk>=0.29.0->databricks-connect) (2026.6.17)
+Requirement already satisfied: cffi>=2.0.0 in ./.venv/lib/python3.13/site-packages (from cryptography>=38.0.3->google-auth~=2.0->databricks-sdk>=0.29.0->databricks-connect) (2.0.0)
+Requirement already satisfied: pycparser in ./.venv/lib/python3.13/site-packages (from cffi>=2.0.0->cryptography>=38.0.3->google-auth~=2.0->databricks-sdk>=0.29.0->databricks-connect) (3.0)
+Requirement already satisfied: typing-extensions~=4.12 in ./.venv/lib/python3.13/site-packages (from grpcio>=1.59.3->databricks-connect) (4.15.0)
+Requirement already satisfied: python-dateutil>=2.8.2 in ./.venv/lib/python3.13/site-packages (from pandas>=1.0.5->databricks-connect) (2.9.0.post0)
+Requirement already satisfied: pytz>=2020.1 in ./.venv/lib/python3.13/site-packages (from pandas>=1.0.5->databricks-connect) (2026.2)
+Requirement already satisfied: tzdata>=2022.7 in ./.venv/lib/python3.13/site-packages (from pandas>=1.0.5->databricks-connect) (2026.2)
+Requirement already satisfied: pyasn1<0.7.0,>=0.6.1 in ./.venv/lib/python3.13/site-packages (from pyasn1-modules>=0.2.1->google-auth~=2.0->databricks-sdk>=0.29.0->databricks-connect) (0.6.3)
+Downloading databricks_connect-16.1.7-py2.py3-none-any.whl (2.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/2.4 MB 12.3 MB/s  0:00:00
+Installing collected packages: databricks-connect
+  Attempting uninstall: databricks-connect
+    Found existing installation: databricks-connect 14.3.22
+    Uninstalling databricks-connect-14.3.22:
+      Successfully uninstalled databricks-connect-14.3.22
+Successfully installed databricks-connect-16.1.7
