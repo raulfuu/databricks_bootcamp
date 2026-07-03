@@ -26,13 +26,13 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
       - name: Run Unit Tests (pytest)
         run: |
           pip install pytest pyspark
           pytest tests/
-
-      - name: Install Databricks CLI
-        uses: databricks/setup-cli@main
 
       # CI
       - name: Validate Bundle Configuration
