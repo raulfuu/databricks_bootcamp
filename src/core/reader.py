@@ -45,6 +45,7 @@ def read_source_data(spark, source_config: dict):
     df = spark.readStream.format("cloudFiles") \
         .option("cloudFiles.format", "json") \
         .option("cloudFiles.schemaLocation", schema_checkpoint_dir) \
+        .option("cloudFiles.schemaEvolutionMode", "rescue") \
         .schema(expected_schema) \
         .load(source_path)
         

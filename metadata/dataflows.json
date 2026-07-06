@@ -21,6 +21,10 @@
           {
             "field": "age",
             "validations": ["notNull"]
+          },
+          {
+            "field": "age",
+            "validations": ["notNull", "isAdult"]
           }
         ]
       }

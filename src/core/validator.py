@@ -26,6 +26,8 @@ def apply_validations(df: DataFrame, transformations_config: list) -> tuple[Data
                 is_valid = col(field).isNotNull()
             elif val_type == "notEmpty":
                 is_valid = col(field).isNotNull() & (col(field) != lit(""))
+            elif val_type == "isAdult":
+                is_valid = col(field) >= 18
             else:
                 continue
                 

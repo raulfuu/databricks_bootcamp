@@ -1,6 +1,7 @@
 # Databricks notebook source
 import json
-from pyspark.sql.functions import col, current_timestamp, lit, expr, count, avg, round
+from pyspark.sql.functions import current_timestamp, expr, count, avg, round
+from src.core.config_parser import load_config
 
 try:
     import dlt
@@ -19,9 +20,7 @@ env_catalog = spark.conf.get("pipeline.env_catalog", "dev_bootcamp")
 config_path = spark.conf.get("pipeline.config_path")
 
 # Load and parse the metadata contract
-with open(config_path, "r") as f:
-    raw_json = f.read().replace("{env_catalog}", env_catalog)
-    config = json.loads(raw_json)
+config = load_config(config_path, env_catalog)
 
 source_config = config["sources"][0]
 transformations_config = config["transformations"]
@@ -42,6 +41,9 @@ if val_config:
             elif val_type == "notEmpty":
                 rule_name = f"{field}_not_empty"
                 sql_expr = f"{field} IS NOT NULL AND {field} != ''"
+            elif val_type == "isAdult":
+                rule_name = f"{field}_must_be_adult"
+                sql_expr = f"{field} >= 18"
             else:
                 continue
             
