@@ -34,6 +34,8 @@ inverse_rules = []
 if val_config:
     for rule in val_config.get("params", {}).get("validations", []):
         field = rule.get("field")
+        
+        # 1. Process standard registry rules
         for val_type in rule.get("validations", []):
             if val_type == "notNull":
                 rule_name = f"{field}_not_null"
@@ -41,7 +43,7 @@ if val_config:
             elif val_type == "notEmpty":
                 rule_name = f"{field}_not_empty"
                 sql_expr = f"{field} IS NOT NULL AND {field} != ''"
-            elif val_type == "isAdult":
+            elif val_type == "isAdult":  # Rule Registry check
                 rule_name = f"{field}_must_be_adult"
                 sql_expr = f"{field} >= 18"
             else:
@@ -52,6 +54,14 @@ if val_config:
             # Map for capturing rejections in the KO table via inverse logic
             inverse_rules.append(f"NOT ({sql_expr})")
 
+        # 2. Process Dynamic SQL rules
+        for sql_rule in rule.get("sql_expressions", []):
+            rule_name = f"{field}_{sql_rule.get('error_code')}"
+            sql_expr = sql_rule.get("expression")
+            
+            dlt_expectations[rule_name] = sql_expr # Direct SQL injection
+            inverse_rules.append(f"NOT ({sql_expr})")
+            
 # Fallback
 if not dlt_expectations:
     dlt_expectations["schema_handshake_valid"] = "1 == 1"

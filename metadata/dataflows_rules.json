@@ -20,13 +20,11 @@
           },
           {
             "field": "age",
-            "validations": ["notNull", "isAdult"],
-            "sql_expressions": [
-              {
-                "error_code": "not_retirement_age",
-                "expression": "age < 65"
-              }
-            ]
+            "validations": ["notNull"]
+          },
+          {
+            "field": "age",
+            "validations": ["notNull", "isAdult"]
           }
         ]
       }

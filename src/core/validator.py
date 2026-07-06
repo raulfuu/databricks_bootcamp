@@ -1,5 +1,5 @@
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col, lit, when, struct, array, size, map_from_entries
+from pyspark.sql.functions import col, lit, when, struct, array, size, map_from_entries, expr
 from pyspark.sql.functions import filter as spark_filter
 from src.utils.logger import get_logger
 
@@ -20,19 +20,29 @@ def apply_validations(df: DataFrame, transformations_config: list) -> tuple[Data
     
     for rule in rules:
         field = rule.get("field")
+        
+        # 1. Process standard registry rules
         for val_type in rule.get("validations", []):
-
             if val_type == "notNull":
                 is_valid = col(field).isNotNull()
             elif val_type == "notEmpty":
                 is_valid = col(field).isNotNull() & (col(field) != lit(""))
-            elif val_type == "isAdult":
+            elif val_type == "isAdult":  # Rule Registry check
                 is_valid = col(field) >= 18
             else:
                 continue
                 
-            # If invalid, create a struct(key=field, value=error_type). If valid, return NULL.
             err_struct = when(~is_valid, struct(lit(field).alias("k"), lit(val_type).alias("v")))
+            error_structs.append(err_struct)
+
+        # 2. Process Dynamic SQL rules
+        for sql_rule in rule.get("sql_expressions", []):
+            error_code = sql_rule.get("error_code")
+            sql_logic = sql_rule.get("expression")
+            
+            is_valid = expr(sql_logic) # Direct SQL injection
+            
+            err_struct = when(~is_valid, struct(lit(field).alias("k"), lit(error_code).alias("v")))
             error_structs.append(err_struct)
 
     if error_structs:
