@@ -14,7 +14,7 @@ def generate_dataset(env_catalog: str, num_rows: int):
     df_generated = df.withColumn(
         "name", F.concat(F.lit("User_"), F.col("id").cast("string"))
     ).withColumn(
-        "age", F.when(F.rand() < 0.1, F.lit(None)).otherwise((F.rand() * 50 + 18).cast("int"))
+        "age", F.when(F.rand() < 0.1, F.lit(None)).otherwise((F.rand() * 50 + 16).cast("int"))
     ).withColumn(
         "office", F.when(F.rand() < 0.1, F.lit("")).otherwise(
             F.when(F.rand() < 0.5, F.lit("MADRID")).otherwise(F.lit("RIO"))
