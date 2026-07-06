@@ -17,6 +17,7 @@ resources:
       configuration:
         pipeline.env_catalog: "${bundle.target}_bootcamp"
         pipeline.config_path: "/Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}/files/metadata/dataflows.json"
+  
   jobs:
   
     bootcamp_validation_job:
@@ -36,6 +37,8 @@ resources:
             - task_key: run_pipeline_engine
           notebook_task:
             notebook_path: "src/apply_governance.sql"
+            base_parameters:
+              env_catalog: "${bundle.target}_bootcamp"
 
 
     bootcamp_dlt_orchestration_job:
@@ -52,7 +55,9 @@ resources:
           depends_on:
             - task_key: trigger_dlt_engine
           notebook_task:
-            notebook_path: "src/apply_governance.sql"
+            notebook_path: "src/apply_governance_dlt.sql"
+            base_parameters:
+              env_catalog: "${bundle.target}_bootcamp"
 
 targets:
   dev:

@@ -3,35 +3,24 @@ from src.utils.logger import get_logger
 
 logger = get_logger("Writer")
 
-def write_delta_table(df: DataFrame, sink_config: dict, stream_name: str) -> tuple:
+def write_delta_table(df: DataFrame, table_name: str, checkpoint_path: str, stream_name: str) -> tuple:
     """
-    Writes a Streaming DataFrame to a Delta table within Unity Catalog volumes/tables.
-    Optimized natively with Delta Lake features like mergeSchema.
+    Writes a Streaming DataFrame directly to a Unity Catalog Managed Table.
     """
-    paths = sink_config.get("paths", [])
-    if not paths:
-        logger.error(f"No sink path configured for target {sink_config.get('name')}")
-        raise ValueError("Missing sink destination path.")
-        
-    target_path = paths[0]
-    fmt = sink_config.get("format", "DELTA").lower()
-    
-    logger.info(f"Initializing Auto Loader Write Stream to: {target_path}")
-    checkpoint_path = f"{target_path}/_checkpoints"
+    logger.info(f"Initializing Auto Loader Write Stream to Unity Catalog Table: {table_name}")
     
     try:
-        # Build the write stream (Incremental Batch via Trigger.AvailableNow)
         query = (df.writeStream
-                 .format(fmt)
+                 .format("delta")
                  .option("checkpointLocation", checkpoint_path)
                  .option("mergeSchema", "true")
                  .trigger(availableNow=True)
                  .outputMode("append")
-                 .start(target_path))
+                 .toTable(table_name))
         
-        logger.info(f"Stream '{stream_name}' successfully started for: {target_path}")
-        return query, target_path
+        logger.info(f"Stream '{stream_name}' successfully started for: {table_name}")
+        return query, table_name
         
     except Exception as e:
-        logger.error(f"Failed to start stream to {target_path}. Error: {e}")
+        logger.error(f"Failed to start stream to {table_name}. Error: {e}")
         raise

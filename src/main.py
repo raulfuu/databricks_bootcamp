@@ -37,22 +37,26 @@ def run_pipeline(config_path: str, env_catalog: str):
         spark = get_spark_session()
         pipeline_name = config.get("name", "unknown_pipeline")
         
-        # Helper function to safely count Delta tables (returns 0 if table doesn't exist yet)
-        def get_table_count(path: str) -> int:
+        # 1. Define Unity Catalog Table Names
+        table_ok = f"{env_catalog}.data_ingestion.person_standard_ok"
+        table_ko = f"{env_catalog}.data_ingestion.person_standard_ko"
+        
+        # 2. Define Checkpoint Paths (These still live in the Volume)
+        checkpoint_ok = f"/Volumes/{env_catalog}/data_ingestion/landing_zone/checkpoints/ok"
+        checkpoint_ko = f"/Volumes/{env_catalog}/data_ingestion/landing_zone/checkpoints/ko"
+        
+        # Helper function to safely count Delta tables natively
+        def get_table_count(t_name: str) -> int:
             try:
-                return spark.read.format("delta").load(path).count()
+                return spark.table(t_name).count()
             except Exception:
                 return 0
                 
-        # Get target paths from config
-        path_ok = config["sinks"][0]["paths"][0]
-        path_ko = config["sinks"][1]["paths"][0]
+        # Capture initial row counts
+        ok_initial = get_table_count(table_ok)
+        ko_initial = get_table_count(table_ko)
         
-        # Capture initial row counts BEFORE streams start
-        ok_initial = get_table_count(path_ok)
-        ko_initial = get_table_count(path_ko)
-        
-        # Ingest via Auto Loader (Stream)
+        # Ingest via Auto Loader
         source_df = read_source_data(spark, config["sources"][0])
         logger.info("Auto Loader stream initialized.")
         
@@ -60,75 +64,49 @@ def run_pipeline(config_path: str, env_catalog: str):
         source_df_with_time = add_metadata(source_df)
         df_ok, df_ko = apply_validations(source_df_with_time, config["transformations"])
         
-        # Start the Delta writers
-        query_ok, _ = write_delta_table(df_ok, config["sinks"][0], "ok")
-        query_ko, _ = write_delta_table(df_ko, config["sinks"][1], "ko")
+        # Start the Delta writers (Writing to Unity Catalog Tables)
+        query_ok, _ = write_delta_table(df_ok, table_ok, checkpoint_ok, "ok")
+        query_ko, _ = write_delta_table(df_ko, table_ko, checkpoint_ko, "ko")
         
-        # Wait for Auto Loader to process all new files
+        # Wait for streams to finish
         logger.info("Awaiting stream termination (Processing Incremental Batch)...")
         query_ok.awaitTermination()
         query_ko.awaitTermination()
 
-        # Gold Layer - Business Aggregations (Batch Execution)
+        # Gold Layer
         logger.info("Building Gold Layer business aggregations...")
         gold_table_name = f"{env_catalog}.data_ingestion.person_gold_office_stats"
-        silver_df = spark.read.format("delta").load(path_ok)
+        silver_df = spark.table(table_ok)
         
-        # Perform the aggregation
         gold_df = silver_df.groupBy("office").agg(
             count("*").alias("total_employees"),
             spark_round(avg("age"), 1).alias("average_age")
         )
-        
-        # Overwrite the Gold table in Unity Catalog
         gold_df.write.format("delta").mode("overwrite").saveAsTable(gold_table_name)
         logger.info(f"Gold Layer successfully updated: {gold_table_name}")
         
-        # Extract exact row counts by diffing the Delta Lake storage layer
-        ok_final = get_table_count(path_ok)
-        ko_final = get_table_count(path_ko)
-        
-        ok_count = ok_final - ok_initial
-        ko_count = ko_final - ko_initial
-        
+        # Final row counts
+        ok_count = get_table_count(table_ok) - ok_initial
+        ko_count = get_table_count(table_ko) - ko_initial
         logger.info(f"Pipeline streams terminated successfully. Processed Valid: {ok_count} rows | Rejected: {ko_count} rows.")
         
-        # Apply Liquid Clustering dynamically via Spark SQL now that data is written
-        spark.sql(f"ALTER TABLE delta.`{path_ok}` CLUSTER BY (office)")
-        spark.sql(f"ALTER TABLE delta.`{path_ko}` CLUSTER BY (office)")
-        logger.info("Liquid Clustering natively enabled on destination tables by column: office")
+        # Liquid Clustering
+        spark.sql(f"ALTER TABLE {table_ok} CLUSTER BY (office)")
+        spark.sql(f"ALTER TABLE {table_ko} CLUSTER BY (office)")
         
-        # Write to the Audit Log Table for traceability
+        # Audit Log
         end_time = time.time()
-        duration_sec = round(end_time - start_time, 2)
-        
-        audit_data = [(
-            pipeline_name, 
-            env_catalog, 
-            ok_count, 
-            ko_count, 
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-            duration_sec
-        )]
+        audit_data = [(pipeline_name, env_catalog, ok_count, ko_count, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), round(end_time - start_time, 2))]
         audit_schema = "pipeline_name STRING, environment STRING, rows_ok INT, rows_ko INT, execution_timestamp STRING, duration_seconds DOUBLE"
-        
-        audit_df = spark.createDataFrame(audit_data, schema=audit_schema)
-        audit_table_name = f"{env_catalog}.data_ingestion.pipeline_audit_log"
-        
-        audit_df.write.format("delta").mode("append").option("mergeSchema", "true").saveAsTable(audit_table_name)
-        logger.info(f"Audit metrics successfully appended to catalog table: {audit_table_name}")
+        spark.createDataFrame(audit_data, schema=audit_schema).write.format("delta").mode("append").option("mergeSchema", "true").saveAsTable(f"{env_catalog}.data_ingestion.pipeline_audit_log")
         
     except Exception as e:
         logger.critical(f"Pipeline failed critically: {e}")
         raise e
-        
-    logger.info(f"=================== PIPELINE FINISHED IN {round(time.time() - start_time, 2)} SECONDS ===================")
 
 if __name__ == "__main__" or "DATABRICKS_RUNTIME_VERSION" in os.environ:
     try:
         env_catalog = dbutils.widgets.get("env_catalog")
-    except NameError:
-        env_catalog = "dev_bootcamp"
     except Exception:
         env_catalog = "dev_bootcamp"
 
