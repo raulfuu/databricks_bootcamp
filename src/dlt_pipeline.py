@@ -56,7 +56,7 @@ if not dlt_expectations:
 
 # Bronze Layer - Raw Streaming Ingestion
 @dlt.table(
-    name="person_raw",
+    name="person_raw_dlt",
     comment="Raw streaming ingestion from landing zone using Auto Loader"
 )
 def person_raw():
@@ -72,26 +72,26 @@ def person_raw():
 
 # STANDARD_OK Table (Enforces Quality Metrics)
 @dlt.table(
-    name="person_standard_ok",
+    name="person_standard_ok_dlt",
     comment="Validated records that passed native DLT expectations metadata contract"
 )
 # Injects JSON rules straight into the Databricks Platform Telemetry Engine!
 @dlt.expect_all_or_drop(dlt_expectations)
 def person_standard_ok():
-    return dlt.read("person_raw")
+    return dlt.read("person_raw_dlt")
 
 
 # STANDARD_KO Table (Captures Rejections via Inverse Filter and Error Code)
 @dlt.table(
-    name="person_standard_ko",
+    name="person_standard_ko_dlt",
     comment="Rejected records that failed at least one metadata quality expectation"
 )
 def person_standard_ko():
     if not inverse_rules:
-        return dlt.read("person_raw").filter("1 == 0")
+        return dlt.read("person_raw_dlt").filter("1 == 0")
         
     ko_filter_expression = " OR ".join(inverse_rules)
-    ko_df = dlt.read("person_raw").filter(ko_filter_expression)
+    ko_df = dlt.read("person_raw_dlt").filter(ko_filter_expression)
     
     # Dynamically build the arraycoderrorbyfield column using SQL expressions, evaluates every rule. If it fails, it adds the rule name. If it passes, it adds NULL.
     error_cases = []
@@ -112,7 +112,7 @@ def person_standard_ko():
 )
 def person_gold_office_stats():
     return (
-        dlt.read("person_standard_ok")
+        dlt.read("person_standard_ok_dlt")
         .groupBy("office")
         .agg(
             count("*").alias("total_employees"),
