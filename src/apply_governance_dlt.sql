@@ -19,3 +19,9 @@ ALTER COLUMN name SET MASK name_mask_policy;
 
 ALTER MATERIALIZED VIEW person_standard_ok_dlt 
 SET ROW FILTER office_filter_policy ON (office);
+
+ALTER MATERIALIZED VIEW person_standard_ko_dlt 
+ALTER COLUMN name SET MASK name_mask_policy;
+
+ALTER MATERIALIZED VIEW person_standard_ko_dlt 
+SET ROW FILTER office_filter_policy ON (office);

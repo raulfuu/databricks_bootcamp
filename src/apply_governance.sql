@@ -22,3 +22,9 @@ ALTER COLUMN name SET MASK name_mask_policy;
 
 ALTER TABLE person_standard_ok 
 SET ROW FILTER office_filter_policy ON (office);
+
+ALTER TABLE person_standard_ko 
+ALTER COLUMN name SET MASK name_mask_policy;
+
+ALTER TABLE person_standard_ko 
+SET ROW FILTER office_filter_policy ON (office);
