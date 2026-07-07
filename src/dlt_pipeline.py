@@ -1,6 +1,18 @@
 # Databricks notebook source
-import json
+
+import sys
+import os
 from pyspark.sql.functions import current_timestamp, expr, count, avg, round
+
+try:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+except NameError:
+    current_dir = os.getcwd()
+
+project_root = os.path.abspath(os.path.join(current_dir, ".."))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
 from src.core.config_parser import load_config
 
 try:
